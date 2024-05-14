@@ -153,3 +153,9 @@ else
 exit(0);
 
 }
+/*
+Enter the expression : a=b+c
+The Intermediate code is :
+t1=b+c
+a=t1
+*/
