@@ -88,3 +88,21 @@ int main() {
     
     return 0;
 }
+/*
+// Input:
+Enter the number of productions: 3
+S -> AbC
+A -> a
+B -> b
+
+// Output:
+FIRST(S)={  a  }
+FIRST(A)={  a  }
+FIRST(B)={  b  }
+
+FOLLOW(S)={ $ }
+FOLLOW(A)={  b  }
+FOLLOW(B)={  c  }
+
+The End
+*/
