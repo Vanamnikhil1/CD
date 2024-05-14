@@ -1,90 +1,139 @@
+#include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
-char **productions;
-
-int findPos(char NonTer) {
-    int i = 0;
-    while (productions[i][0] != NonTer)
-        i++;
-    return i;
+bool isDelimiter(char ch) {
+    if (ch == ' ' || ch == '+' || ch == '-' || ch == '*' ||
+        ch == '/' || ch == ',' || ch == ';' || ch == '>' ||
+        ch == '<' || ch == '=' || ch == '(' || ch == ')' ||
+        ch == '[' || ch == ']' || ch == '{' || ch == '}')
+        return true;
+    return false;
 }
 
-char* findGenerating(char Ter) {
-    int i = 0;
-    while (productions[i][0] != Ter)
-        i++;
-    return productions[i];
+bool isOperator(char ch) {
+    if (ch == '+' || ch == '-' || ch == '*' ||
+        ch == '/' || ch == '>' || ch == '<' ||
+        ch == '=')
+        return true;
+    return false;
 }
 
-char findFirst(char *prod) {
+bool validIdentifier(char *str) {
+    if (str[0] == '0' || str[0] == '1' || str[0] == '2' ||
+        str[0] == '3' || str[0] == '4' || str[0] == '5' ||
+        str[0] == '6' || str[0] == '7' || str[0] == '8' ||
+        str[0] == '9' || isDelimiter(str[0]))
+        return false;
+    return true;
+}
+
+bool isKeyword(char *str) {
+    if (!strcmp(str, "if") || !strcmp(str, "else") ||
+        !strcmp(str, "while") || !strcmp(str, "do") ||
+        !strcmp(str, "break") ||
+        !strcmp(str, "continue") || !strcmp(str, "int")
+        || !strcmp(str, "double") || !strcmp(str, "float")
+        || !strcmp(str, "return") || !strcmp(str, "char")
+        || !strcmp(str, "case") || !strcmp(str, "char")
+        || !strcmp(str, "sizeof") || !strcmp(str, "long")
+        || !strcmp(str, "short") || !strcmp(str, "typedef")
+        || !strcmp(str, "switch") || !strcmp(str, "unsigned")
+        || !strcmp(str, "void") || !strcmp(str, "static")
+        || !strcmp(str, "struct") || !strcmp(str, "goto"))
+        return true;
+    return false;
+}
+
+bool isInteger(char *str) {
+    int i, len = strlen(str);
+
+    if (len == 0)
+        return false;
+    for (i = 0; i < len; i++) {
+        if (str[i] != '0' && str[i] != '1' && str[i] != '2'
+            && str[i] != '3' && str[i] != '4' && str[i] != '5'
+            && str[i] != '6' && str[i] != '7' && str[i] != '8'
+            && str[i] != '9' || (str[i] == '-' && i > 0))
+            return false;
+    }
+    return true;
+}
+
+bool isRealNumber(char *str) {
+    int i, len = strlen(str);
+    bool hasDecimal = false;
+
+    if (len == 0)
+        return false;
+    for (i = 0; i < len; i++) {
+        if (str[i] != '0' && str[i] != '1' && str[i] != '2'
+            && str[i] != '3' && str[i] != '4' && str[i] != '5'
+            && str[i] != '6' && str[i] != '7' && str[i] != '8'
+            && str[i] != '9' && str[i] != '.' ||
+            (str[i] == '-' && i > 0))
+            return false;
+        if (str[i] == '.')
+            hasDecimal = true;
+    }
+    return hasDecimal;
+}
+
+char *subString(char *str, int left, int right) {
     int i;
-    for (i = 3; i < strlen(prod); i++) {
-        if ((prod[i] >= 'a' && prod[i] <= 'z') || prod[i] == ')' || prod[i] == '(' || prod[i] == ',') {
-            printf(" %c ", prod[i]);
-            while (prod[i] != '/' && prod[i] != '\0')
-                i++;
-            return prod[i]; // return the last processed character, for example
-        } else if (prod[i] >= 'A' && prod[i] <= 'Z') {
-            printf("  %c", findFirst(productions[findPos(prod[i])]));
-            return prod[i];  // return the non-terminal or another meaningful character
-        } else if (prod[i] == '#') {
-            printf("  #");
-            return '#'; // return when it's a specific symbol like '#'
-        }
-    }
-    return '\0'; // default return when none of the conditions are met
+    char *subStr = (char *)malloc(sizeof(char) * (right - left + 2));
+
+    for (i = left; i <= right; i++)
+        subStr[i - left] = str[i];
+    subStr[right - left + 1] = '\0';
+    return subStr;
 }
 
-void findFollow(char GeneratingSymbol, int n) {
-    int i, j = 0;
-    if (GeneratingSymbol == 'S')
-        printf(" $ ");
-    for (j = 0; j < n; j++) {
-        for (i = 3; i < strlen(productions[j]); i++) {
-            if (GeneratingSymbol == productions[j][i]) {
-                if ((productions[j][i + 1] >= 'a' && productions[j][i + 1] <= 'z') || productions[j][i + 1] == ')' || productions[j][i + 1] == '(' || productions[j][i + 1] == ',') {
-                    printf(" %c ", productions[j][i + 1]);
-                } else if (productions[j][i + 1] >= 'A' && productions[j][i + 1] <= 'Z') {
-                    char ans = findFirst(findGenerating(productions[j][i + 1]));
-                } else if (i + 1 == strlen(productions[j])) {
-                    findFollow(productions[j][0], n);
-                } else {
-                    continue;
-                }
-            }
+void parse(char *str) {
+    int left = 0, right = 0;
+    int len = strlen(str);
+
+    while (right <= len && left <= right) {
+        if (isDelimiter(str[right]) == false)
+            right++;
+
+        if (isDelimiter(str[right]) == true && left == right) {
+            if (isOperator(str[right]) == true)
+                printf("'%c' IS AN OPERATOR\n", str[right]);
+
+            right++;
+            left = right;
+        } else if (isDelimiter(str[right]) == true && left != right
+                   || (right == len && left != right)) {
+            char *subStr = subString(str, left, right - 1);
+
+            if (isKeyword(subStr) == true)
+                printf("'%s' IS A KEYWORD\n", subStr);
+
+            else if (isInteger(subStr) == true)
+                printf("'%s' IS AN INTEGER\n", subStr);
+
+            else if (isRealNumber(subStr) == true)
+                printf("'%s' IS A REAL NUMBER\n", subStr);
+
+            else if (validIdentifier(subStr) == true
+                     && isDelimiter(str[right - 1]) == false)
+                printf("'%s' IS A VALID IDENTIFIER\n", subStr);
+
+            else if (validIdentifier(subStr) == false
+                     && isDelimiter(str[right - 1]) == false)
+                printf("'%s' IS NOT A VALID IDENTIFIER\n", subStr);
+            left = right;
         }
     }
+    return;
 }
 
 int main() {
-    int i, n;
-    printf("Enter the number of productions: ");
-    scanf("%d\n", &n);
-    productions = (char**) malloc(sizeof(char*) * n);
-    for (i = 0; i < n; i++)
-        productions[i] = (char*) malloc(sizeof(char) * 20);
-
-    char temp[20];  // Buffer to read input
-    for (i = 0; i < n; i++) {
-        fgets(temp, 20, stdin);
-        temp[strcspn(temp, "\n")] = 0;  // Remove newline character
-        strcpy(productions[i], temp);
-    }
-
-    // First Computation
-    for (i = 0; i < n; i++) {
-        printf("\nFIRST(%c)={  ", productions[i][0]);
-        char ans = findFirst(productions[i]);
-        printf("}\n");
-    }
-
-    for (i = 0; i < n; i++) {
-        printf("\nFOLLOW(%c)={", productions[i][0]);
-        findFollow(productions[i][0], n);
-        printf("}\n");
-    }
-    printf("\nThe End");
+    char str[100];
+    printf("Enter the string: ");
+    scanf("%[^\n]", str);
+    parse(str);
     return 0;
 }

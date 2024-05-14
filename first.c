@@ -1,120 +1,90 @@
-#include<stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include<conio.h>
+char **productions;
 
-void main() {
-  char stack[20], ip[20], opt[10][10][1], ter[10];
-  int i, j, k, n, top = 0, col, row;
-  clrscr();
-  for (i = 0; i < 10; i++) {
-    stack[i] = NULL;
-    ip[i] = NULL;
-    for (j = 0; j < 10; j++) {
-      opt[i][j][1] = NULL;
-    }
-  }
-  printf("Enter the no.of terminals :\n");
-  scanf("%d", & n);
-  printf("\nEnter the terminals :\n");
-  scanf("%s", & ter);
-  printf("\nEnter the table values :\n");
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < n; j++) {
-      printf("Enter the value for %c %c:", ter[i], ter[j]);
-      scanf("%s", opt[i][j]);
-    }
-  }
-  printf("\n**** OPERATOR PRECEDENCE TABLE ****\n");
-  for (i = 0; i < n; i++) {
-    printf("\t%c", ter[i]);
-  }
-  printf("\n");
-  for (i = 0; i < n; i++) {
-    printf("\n%c", ter[i]);
-    for (j = 0; j < n; j++) {
-      printf("\t%c", opt[i][j][0]);
-    }
-  }
-  stack[top] = '$';
-  printf("\nEnter the input string:");
-  scanf("%s", ip);
-  i = 0;
-  printf("\nSTACK\t\t\tINPUT STRING\t\t\tACTION\n");
-  printf("\n%s\t\t\t%s\t\t\t", stack, ip);
-  while (i <= strlen(ip)) {
-    for (k = 0; k < n; k++) {
-      if (stack[top] == ter[k])
-        col = k;
-      if (ip[i] == ter[k])
-        row = k;
-    }
-    if ((stack[top] == '$') && (ip[i] == '$')) {
-      printf("String is accepted\n");
-      break;
-    } else if ((opt[col][row][0] == '<') || (opt[col][row][0] == '=')) {
-      stack[++top] = opt[col][row][0];
-      stack[++top] = ip[i];
-      printf("Shift %c", ip[i]);
-      i++;
-    } else {
-      if (opt[col][row][0] == '>') {
-        while (stack[top] != '<') {
-          --top;
-        }
-        top = top - 1;
-        printf("Reduce");
-      } else {
-        printf("\nString is not accepted");
-        break;
-      }
-    }
-    printf("\n");
-    for (k = 0; k <= top; k++) {
-      printf("%c", stack[k]);
-    }
-    printf("\t\t\t");
-    for (k = i; k < strlen(ip); k++) {
-      printf("%c", ip[k]);
-    }
-    printf("\t\t\t");
-  }
-  getch();
+int findPos(char NonTer) {
+    int i = 0;
+    while (productions[i][0] != NonTer)
+        i++;
+    return i;
 }
-/* Input:
-Enter the no.of terminals :
-3
-Enter the terminals :
-+-$
-Enter the table values :
-Enter the value for + +:>
-Enter the value for + -:<
-Enter the value for + $:>
-Enter the value for - +:<
-Enter the value for - -:<
-Enter the value for - $:>
-Enter the value for $ +:<
-Enter the value for $ -:<
-Enter the value for $ $:=
 
-Enter the input string:
-a+b$
+char* findGenerating(char Ter) {
+    int i = 0;
+    while (productions[i][0] != Ter)
+        i++;
+    return productions[i];
+}
 
-Output:
-**** OPERATOR PRECEDENCE TABLE ****
-	+	-	$
-+
->	<	>
--
-<	<	>
-$
-<	<	=
+char findFirst(char *prod) {
+    int i;
+    for (i = 3; i < strlen(prod); i++) {
+        if ((prod[i] >= 'a' && prod[i] <= 'z') || prod[i] == ')' || prod[i] == '(' || prod[i] == ',') {
+            printf(" %c ", prod[i]);
+            while (prod[i] != '/' && prod[i] != '\0')
+                i++;
+            return prod[i]; // return the last processed character, for example
+        } else if (prod[i] >= 'A' && prod[i] <= 'Z') {
+            printf("  %c", findFirst(productions[findPos(prod[i])]));
+            return prod[i];  // return the non-terminal or another meaningful character
+        } else if (prod[i] == '#') {
+            printf("  #");
+            return '#'; // return when it's a specific symbol like '#'
+        }
+    }
+    return '\0'; // default return when none of the conditions are met
+}
 
-STACK			INPUT STRING			ACTION
+void findFollow(char GeneratingSymbol, int n) {
+    int i, j = 0;
+    if (GeneratingSymbol == 'S')
+        printf(" $ ");
+    for (j = 0; j < n; j++) {
+        for (i = 3; i < strlen(productions[j]); i++) {
+            if (GeneratingSymbol == productions[j][i]) {
+                if ((productions[j][i + 1] >= 'a' && productions[j][i + 1] <= 'z') || productions[j][i + 1] == ')' || productions[j][i + 1] == '(' || productions[j][i + 1] == ',') {
+                    printf(" %c ", productions[j][i + 1]);
+                } else if (productions[j][i + 1] >= 'A' && productions[j][i + 1] <= 'Z') {
+                    char ans = findFirst(findGenerating(productions[j][i + 1]));
+                } else if (i + 1 == strlen(productions[j])) {
+                    findFollow(productions[j][0], n);
+                } else {
+                    continue;
+                }
+            }
+        }
+    }
+}
 
-$				a+b$				Shift a
-$a				+b$				Shift +
-$a+				b$				Shift b
-$a+b				$				Reduce
+int main() {
+    int i, n;
+    printf("Enter the number of productions: ");
+    scanf("%d\n", &n);
+    productions = (char**) malloc(sizeof(char*) * n);
+    for (i = 0; i < n; i++)
+        productions[i] = (char*) malloc(sizeof(char) * 20);
 
-String is accepted
-*/
+    char temp[20];  // Buffer to read input
+    for (i = 0; i < n; i++) {
+        fgets(temp, 20, stdin);
+        temp[strcspn(temp, "\n")] = 0;  // Remove newline character
+        strcpy(productions[i], temp);
+    }
+
+    // First Computation
+    for (i = 0; i < n; i++) {
+        printf("\nFIRST(%c)={  ", productions[i][0]);
+        char ans = findFirst(productions[i]);
+        printf("}\n");
+    }
+
+    for (i = 0; i < n; i++) {
+        printf("\nFOLLOW(%c)={", productions[i][0]);
+        findFollow(productions[i][0], n);
+        printf("}\n");
+    }
+    
+    return 0;
+}
