@@ -155,43 +155,55 @@ int main()
     return 0;
 }
     /*
-    Enter the number of productions : 3
+    Enter the number of productions : 5
 Enter the productions
-E->TR
-R->+TR
-R->#
-Enter first for R : +$
-Enter first for R : #
-Enter first for E : (i
+S->aXYb
+Enter first for aXYb : a
+X->c
+Enter first for c : c
+X->#
+Enter first for # : #
+Y->d
+Enter first for d : d
+Y->#
+Enter first for # : #
 Enter the number of Terminals : 4
 Enter the Terminals
-i + * (
-Enter the number of Non-Terminals : 2
-Enter Non-Terminal : E
-Enter follow of E : )$
-Enter Non-Terminal : R
-Enter follow of R : )$
+a
+b
+c
+d
+Enter the number of Non-Terminals : 3
+Enter Non-Terminal : S
+Enter follow of S : $
+Enter Non-Terminal : X
+Enter follow of X : bd
+Enter Non-Terminal : Y
+Enter follow of Y : b
 
-OUTPUT
+
 Grammar
-E->TR
-R->+TR
-R->#
+S->aXYb
+X->c
+X->#
+Y->d
+Y->#
+         a         b        c        d        $
+S        S->aXYb
+X                        X->#          X->c     X->#
+Y                     Y->#                     Y->d
 
-        i       +       *       (       )       $
-E       TR
-R       +TR             #       #       #       #       #
-
-Enter the string to be parsed : i+i*i$
-Stack   Input   Action
-E$      i+i*i$  E->TR
-TR$     +i*i$   Match i
-R$      i*i$    R->#
-R$      *i$     Match +
-RTR$    i$      E->TR
-TR$     i$      Match i
-R$      $       R->#
-$       $       String Parsed.
-Continue?(Y/N) n
+Enter the string to be parsed: acdb
+Stack       Input         Action
+S$        acdb$        S->aXYb
+aXYb$       acdb$          Match a
+XYb$             cdb$                 X->c
+cYb$             cdb$             Match c
+Yb$       db$       Y->d
+db$       db$       Match d
+b$        b$        Match b
+$         $
+String Parsed.
+Continue?(Y/N) y
 
 */
